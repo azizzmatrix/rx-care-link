@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as OrderMedicinesRouteImport } from './routes/order-medicines'
 import { Route as PosRouteImport } from './routes/pos'
 import { Route as SalesRouteImport } from './routes/sales'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const InventoryRoute = InventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderMedicinesRoute = OrderMedicinesRouteImport.update({
+  id: '/order-medicines',
+  path: '/order-medicines',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PosRoute = PosRouteImport.update({
@@ -38,12 +44,14 @@ const SalesRoute = SalesRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inventory': typeof InventoryRoute
+  '/order-medicines': typeof OrderMedicinesRoute
   '/pos': typeof PosRoute
   '/sales': typeof SalesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/inventory': typeof InventoryRoute
+  '/order-medicines': typeof OrderMedicinesRoute
   '/pos': typeof PosRoute
   '/sales': typeof SalesRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/inventory': typeof InventoryRoute
+  '/order-medicines': typeof OrderMedicinesRoute
   '/pos': typeof PosRoute
   '/sales': typeof SalesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inventory' | '/pos' | '/sales'
+  fullPaths: '/' | '/inventory' | '/order-medicines' | '/pos' | '/sales'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventory' | '/pos' | '/sales'
-  id: '__root__' | '/' | '/inventory' | '/pos' | '/sales'
+  to: '/' | '/inventory' | '/order-medicines' | '/pos' | '/sales'
+  id: '__root__' | '/' | '/inventory' | '/order-medicines' | '/pos' | '/sales'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InventoryRoute: typeof InventoryRoute
+  OrderMedicinesRoute: typeof OrderMedicinesRoute
   PosRoute: typeof PosRoute
   SalesRoute: typeof SalesRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/inventory'
       preLoaderRoute: typeof InventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order-medicines': {
+      id: '/order-medicines'
+      path: '/order-medicines'
+      fullPath: '/order-medicines'
+      preLoaderRoute: typeof OrderMedicinesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pos': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InventoryRoute: InventoryRoute,
+  OrderMedicinesRoute: OrderMedicinesRoute,
   PosRoute: PosRoute,
   SalesRoute: SalesRoute,
 }
