@@ -109,13 +109,6 @@ function OrderMedicinesPage() {
     return () => clearInterval(timer);
   }, [deliveries]);
 
-  // Complete deliveries that hit zero.
-  useEffect(() => {
-    for (const sku of Object.keys(deliveries)) {
-      if (deliveries[sku] === 0) continue;
-    }
-  }, [deliveries]);
-
   function startDelivery(item: CatalogItem) {
     if (deliveries[item.sku] !== undefined) return;
     setDeliveries((prev) => ({ ...prev, [item.sku]: DELIVERY_SECONDS }));
