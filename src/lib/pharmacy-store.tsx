@@ -27,6 +27,8 @@ interface PharmacyContextValue {
   medicines: Medicine[];
   sales: Sale[];
   addMedicine: (input: MedicineInput) => Medicine;
+  /** Adds stock to an existing medicine (matched by name) or creates it. */
+  receiveStock: (input: MedicineInput, quantity: number) => void;
   updateMedicine: (id: string, input: MedicineInput) => void;
   deleteMedicine: (id: string) => void;
   recordSale: (input: RecordSaleInput) => Sale;
@@ -49,6 +51,30 @@ export function PharmacyProvider({ children }: { children: ReactNode }) {
       setMedicines((prev) => [medicine, ...prev]);
       setNextMedicineNo((n) => n + 1);
       return medicine;
+    },
+    [nextMedicineNo],
+  );
+
+  const receiveStock = useCallback(
+    (input: MedicineInput, quantity: number) => {
+      setMedicines((prev) => {
+        const idx = prev.findIndex(
+          (m) => m.name.toLowerCase() === input.name.toLowerCase(),
+        );
+        if (idx === -1) {
+          const medicine: Medicine = {
+            ...input,
+            stock: quantity,
+            id: `MED-${String(nextMedicineNo).padStart(3, "0")}`,
+          };
+          setNextMedicineNo((n) => n + 1);
+          return [medicine, ...prev];
+        }
+        const next = [...prev];
+        const current = prev[idx] as Medicine;
+        next[idx] = { ...current, stock: current.stock + quantity };
+        return next;
+      });
     },
     [nextMedicineNo],
   );
@@ -101,11 +127,12 @@ export function PharmacyProvider({ children }: { children: ReactNode }) {
       medicines,
       sales,
       addMedicine,
+      receiveStock,
       updateMedicine,
       deleteMedicine,
       recordSale,
     }),
-    [medicines, sales, addMedicine, updateMedicine, deleteMedicine, recordSale],
+    [medicines, sales, addMedicine, receiveStock, updateMedicine, deleteMedicine, recordSale],
   );
 
   return (

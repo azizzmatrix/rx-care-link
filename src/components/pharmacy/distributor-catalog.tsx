@@ -1,7 +1,9 @@
 import {
   Bike,
+  Minus,
   PackageCheck,
   Pill,
+  Plus,
   Search,
   Truck,
 } from "lucide-react";
@@ -45,10 +47,19 @@ function batchCode() {
 }
 
 export function DistributorCatalog() {
-  const { addMedicine, medicines } = usePharmacy();
+  const { receiveStock, medicines } = usePharmacy();
   const [query, setQuery] = useState("");
   /** sku -> seconds remaining while a delivery is in progress */
   const [deliveries, setDeliveries] = useState<Record<string, number>>({});
+  /** sku -> quantity chosen on the quantity bar */
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  const qtyOf = (sku: string) => quantities[sku] ?? 10;
+  const setQty = (sku: string, value: number) =>
+    setQuantities((prev) => ({
+      ...prev,
+      [sku]: Math.max(1, Math.min(500, Math.round(value) || 1)),
+    }));
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -78,8 +89,9 @@ export function DistributorCatalog() {
 
   function startDelivery(item: CatalogItem) {
     if (deliveries[item.sku] !== undefined) return;
+    const quantity = qtyOf(item.sku);
     setDeliveries((prev) => ({ ...prev, [item.sku]: DELIVERY_SECONDS }));
-    toast.message(`Order placed for ${item.name}`, {
+    toast.message(`Order placed for ${quantity} × ${item.name}`, {
       description: "A rider is on the way from the distributor.",
     });
 
@@ -87,19 +99,22 @@ export function DistributorCatalog() {
     setTimeout(() => {
       const inOneYear = new Date();
       inOneYear.setFullYear(inOneYear.getFullYear() + 1);
-      addMedicine({
-        name: item.name,
-        genericName: item.genericName,
-        category: item.category,
-        manufacturer: item.manufacturer,
-        batchNumber: batchCode(),
-        expiryDate: toLocalISODate(inOneYear),
-        stock: 50,
-        reorderLevel: 10,
-        unitPrice: Math.round(item.price * 1.25 * 100) / 100,
-        costPrice: item.price,
-      });
-      toast.success(`${item.name} delivered and added to inventory`, {
+      receiveStock(
+        {
+          name: item.name,
+          genericName: item.genericName,
+          category: item.category,
+          manufacturer: item.manufacturer,
+          batchNumber: batchCode(),
+          expiryDate: toLocalISODate(inOneYear),
+          stock: quantity,
+          reorderLevel: 10,
+          unitPrice: Math.round(item.price * 1.25 * 100) / 100,
+          costPrice: item.price,
+        },
+        quantity,
+      );
+      toast.success(`${quantity} × ${item.name} delivered to inventory`, {
         icon: <PackageCheck className="h-4 w-4" />,
       });
     }, DELIVERY_SECONDS * 1000);
@@ -135,9 +150,11 @@ export function DistributorCatalog() {
             const progress = delivering
               ? (DELIVERY_SECONDS - remaining) / DELIVERY_SECONDS
               : 0;
-            const alreadyInStock = medicines.some(
+            const existing = medicines.find(
               (m) => m.name.toLowerCase() === item.name.toLowerCase(),
             );
+            const alreadyInStock = Boolean(existing);
+            const qty = qtyOf(item.sku);
 
             return (
               <div
@@ -207,13 +224,60 @@ export function DistributorCatalog() {
                       </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => startDelivery(item)}
-                      className={`${btnPrimary} w-full`}
-                    >
-                      <Truck className="h-4 w-4" />
-                      {alreadyInStock ? "Reorder to Inventory" : "Add to Inventory"}
-                    </button>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Quantity</span>
+                        <span>
+                          {existing
+                            ? `In stock: ${existing.stock} → ${existing.stock + qty}`
+                            : `New item: 0 → ${qty}`}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          aria-label={`Decrease quantity for ${item.name}`}
+                          onClick={() => setQty(item.sku, qty - 1)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-background text-foreground hover:bg-muted"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <input
+                          type="range"
+                          min={1}
+                          max={100}
+                          value={Math.min(qty, 100)}
+                          aria-label={`Quantity for ${item.name}`}
+                          onChange={(e) => setQty(item.sku, Number(e.target.value))}
+                          className="h-1.5 flex-1 cursor-pointer accent-primary"
+                        />
+                        <button
+                          type="button"
+                          aria-label={`Increase quantity for ${item.name}`}
+                          onClick={() => setQty(item.sku, qty + 1)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-background text-foreground hover:bg-muted"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={500}
+                          value={qty}
+                          onChange={(e) => setQty(item.sku, Number(e.target.value))}
+                          className={`${inputCls} h-9 w-16 text-center`}
+                        />
+                      </div>
+                      <button
+                        onClick={() => startDelivery(item)}
+                        className={`${btnPrimary} w-full`}
+                      >
+                        <Truck className="h-4 w-4" />
+                        {alreadyInStock
+                          ? `Reorder ${qty} to Inventory`
+                          : `Add ${qty} to Inventory`}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
