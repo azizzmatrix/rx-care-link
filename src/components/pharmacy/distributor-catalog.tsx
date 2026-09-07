@@ -47,10 +47,19 @@ function batchCode() {
 }
 
 export function DistributorCatalog() {
-  const { addMedicine, medicines } = usePharmacy();
+  const { receiveStock, medicines } = usePharmacy();
   const [query, setQuery] = useState("");
   /** sku -> seconds remaining while a delivery is in progress */
   const [deliveries, setDeliveries] = useState<Record<string, number>>({});
+  /** sku -> quantity chosen on the quantity bar */
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  const qtyOf = (sku: string) => quantities[sku] ?? 10;
+  const setQty = (sku: string, value: number) =>
+    setQuantities((prev) => ({
+      ...prev,
+      [sku]: Math.max(1, Math.min(500, Math.round(value) || 1)),
+    }));
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -80,8 +89,9 @@ export function DistributorCatalog() {
 
   function startDelivery(item: CatalogItem) {
     if (deliveries[item.sku] !== undefined) return;
+    const quantity = qtyOf(item.sku);
     setDeliveries((prev) => ({ ...prev, [item.sku]: DELIVERY_SECONDS }));
-    toast.message(`Order placed for ${item.name}`, {
+    toast.message(`Order placed for ${quantity} × ${item.name}`, {
       description: "A rider is on the way from the distributor.",
     });
 
@@ -89,19 +99,22 @@ export function DistributorCatalog() {
     setTimeout(() => {
       const inOneYear = new Date();
       inOneYear.setFullYear(inOneYear.getFullYear() + 1);
-      addMedicine({
-        name: item.name,
-        genericName: item.genericName,
-        category: item.category,
-        manufacturer: item.manufacturer,
-        batchNumber: batchCode(),
-        expiryDate: toLocalISODate(inOneYear),
-        stock: 50,
-        reorderLevel: 10,
-        unitPrice: Math.round(item.price * 1.25 * 100) / 100,
-        costPrice: item.price,
-      });
-      toast.success(`${item.name} delivered and added to inventory`, {
+      receiveStock(
+        {
+          name: item.name,
+          genericName: item.genericName,
+          category: item.category,
+          manufacturer: item.manufacturer,
+          batchNumber: batchCode(),
+          expiryDate: toLocalISODate(inOneYear),
+          stock: quantity,
+          reorderLevel: 10,
+          unitPrice: Math.round(item.price * 1.25 * 100) / 100,
+          costPrice: item.price,
+        },
+        quantity,
+      );
+      toast.success(`${quantity} × ${item.name} delivered to inventory`, {
         icon: <PackageCheck className="h-4 w-4" />,
       });
     }, DELIVERY_SECONDS * 1000);
