@@ -1,7 +1,9 @@
 import {
   Bike,
+  Minus,
   PackageCheck,
   Pill,
+  Plus,
   Search,
   Truck,
 } from "lucide-react";
