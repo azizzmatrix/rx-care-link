@@ -224,13 +224,60 @@ export function DistributorCatalog() {
                       </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => startDelivery(item)}
-                      className={`${btnPrimary} w-full`}
-                    >
-                      <Truck className="h-4 w-4" />
-                      {alreadyInStock ? "Reorder to Inventory" : "Add to Inventory"}
-                    </button>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Quantity</span>
+                        <span>
+                          {existing
+                            ? `In stock: ${existing.stock} → ${existing.stock + qty}`
+                            : `New item: 0 → ${qty}`}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          aria-label={`Decrease quantity for ${item.name}`}
+                          onClick={() => setQty(item.sku, qty - 1)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-background text-foreground hover:bg-muted"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <input
+                          type="range"
+                          min={1}
+                          max={100}
+                          value={Math.min(qty, 100)}
+                          aria-label={`Quantity for ${item.name}`}
+                          onChange={(e) => setQty(item.sku, Number(e.target.value))}
+                          className="h-1.5 flex-1 cursor-pointer accent-primary"
+                        />
+                        <button
+                          type="button"
+                          aria-label={`Increase quantity for ${item.name}`}
+                          onClick={() => setQty(item.sku, qty + 1)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-background text-foreground hover:bg-muted"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={500}
+                          value={qty}
+                          onChange={(e) => setQty(item.sku, Number(e.target.value))}
+                          className={`${inputCls} h-9 w-16 text-center`}
+                        />
+                      </div>
+                      <button
+                        onClick={() => startDelivery(item)}
+                        className={`${btnPrimary} w-full`}
+                      >
+                        <Truck className="h-4 w-4" />
+                        {alreadyInStock
+                          ? `Reorder ${qty} to Inventory`
+                          : `Add ${qty} to Inventory`}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
