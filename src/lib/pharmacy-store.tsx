@@ -71,7 +71,8 @@ export function PharmacyProvider({ children }: { children: ReactNode }) {
           return [medicine, ...prev];
         }
         const next = [...prev];
-        next[idx] = { ...next[idx], stock: next[idx].stock + quantity };
+        const current = prev[idx] as Medicine;
+        next[idx] = { ...current, stock: current.stock + quantity };
         return next;
       });
     },
