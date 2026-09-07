@@ -3,10 +3,12 @@ import { PackageSearch, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/pharmacy/app-layout";
+import { DistributorCatalog } from "@/components/pharmacy/distributor-catalog";
 import { MedicineFormModal } from "@/components/pharmacy/medicine-form";
 import {
   Badge,
   EmptyState,
+  Modal,
   btnPrimary,
   cardCls,
   iconBtn,
@@ -69,6 +71,7 @@ function InventoryPage() {
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [formOpen, setFormOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
   const [editing, setEditing] = useState<Medicine | null>(null);
 
   const categories = useMemo(
