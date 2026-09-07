@@ -3,10 +3,12 @@ import { PackageSearch, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/pharmacy/app-layout";
+import { DistributorCatalog } from "@/components/pharmacy/distributor-catalog";
 import { MedicineFormModal } from "@/components/pharmacy/medicine-form";
 import {
   Badge,
   EmptyState,
+  Modal,
   btnPrimary,
   cardCls,
   iconBtn,
@@ -69,6 +71,7 @@ function InventoryPage() {
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [formOpen, setFormOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
   const [editing, setEditing] = useState<Medicine | null>(null);
 
   const categories = useMemo(
@@ -97,6 +100,11 @@ function InventoryPage() {
   }, [medicines, search, category, status]);
 
   function openAdd() {
+    setOrderOpen(true);
+  }
+
+  function openManualAdd() {
+    setOrderOpen(false);
     setEditing(null);
     setFormOpen(true);
   }
@@ -230,6 +238,24 @@ function InventoryPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        open={orderOpen}
+        onOpenChange={setOrderOpen}
+        title="Add / Search Medicine"
+        description="Order from your distributor — a rider delivers in 30 seconds and the medicine lands in your inventory."
+        width="max-w-5xl"
+      >
+        <DistributorCatalog />
+        <div className="mt-5 border-t border-border pt-4 text-center">
+          <button
+            onClick={openManualAdd}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            Can't find it? Add a medicine manually
+          </button>
+        </div>
+      </Modal>
 
       <MedicineFormModal
         open={formOpen}
