@@ -100,6 +100,11 @@ function InventoryPage() {
   }, [medicines, search, category, status]);
 
   function openAdd() {
+    setOrderOpen(true);
+  }
+
+  function openManualAdd() {
+    setOrderOpen(false);
     setEditing(null);
     setFormOpen(true);
   }
@@ -233,6 +238,24 @@ function InventoryPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        open={orderOpen}
+        onOpenChange={setOrderOpen}
+        title="Add / Search Medicine"
+        description="Order from your distributor — a rider delivers in 30 seconds and the medicine lands in your inventory."
+        width="max-w-5xl"
+      >
+        <DistributorCatalog />
+        <div className="mt-5 border-t border-border pt-4 text-center">
+          <button
+            onClick={openManualAdd}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            Can't find it? Add a medicine manually
+          </button>
+        </div>
+      </Modal>
 
       <MedicineFormModal
         open={formOpen}
