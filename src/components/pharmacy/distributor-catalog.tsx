@@ -150,9 +150,11 @@ export function DistributorCatalog() {
             const progress = delivering
               ? (DELIVERY_SECONDS - remaining) / DELIVERY_SECONDS
               : 0;
-            const alreadyInStock = medicines.some(
+            const existing = medicines.find(
               (m) => m.name.toLowerCase() === item.name.toLowerCase(),
             );
+            const alreadyInStock = Boolean(existing);
+            const qty = qtyOf(item.sku);
 
             return (
               <div
